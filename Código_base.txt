@@ -1,0 +1,966 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quizz Wars</title>
+  <style>
+    * { 
+      box-sizing: border-box; 
+      font-family: 'Arial', sans-serif; 
+    }
+
+    body { 
+      background-image: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('fundo.png');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      background-attachment: fixed;
+      color: #FFE81F; 
+      display: flex; 
+      justify-content: center; 
+      align-items: center; 
+      min-height: 100vh; 
+      margin: 0; 
+      padding: 20px; 
+    }
+
+    .card { 
+      background: rgba(18, 18, 20, 0.85); 
+      backdrop-filter: blur(8px);
+      border: 2px solid #FFE81F;
+      padding: 30px; 
+      border-radius: 12px; 
+      width: 100%; 
+      max-width: 500px; 
+      box-shadow: 0 0 20px rgba(255, 232, 31, 0.2); 
+      position: relative;
+      transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .card.flash-correct {
+      background-color: rgba(46, 125, 50, 0.95) !important;
+      border-color: #4caf50 !important;
+      box-shadow: 0 0 30px #4caf50 !important;
+    }
+
+    .card.flash-wrong {
+      background-color: rgba(198, 40, 40, 0.95) !important;
+      border-color: #f44336 !important;
+      box-shadow: 0 0 30px #f44336 !important;
+    }
+
+    h1, h2 { 
+      text-align: center; 
+      color: #FFE81F; 
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      margin-top: 0;
+    }
+
+    p { color: #e1e1e6; }
+
+    input, button { 
+      width: 100%; 
+      padding: 12px; 
+      margin-top: 10px; 
+      border-radius: 6px; 
+      font-size: 16px; 
+    }
+
+    input { 
+      background: #121214; 
+      color: #fff; 
+      border: 1px solid #FFE81F; 
+      outline: none;
+    }
+
+    button { 
+      background: #FFE81F; 
+      color: #000; 
+      border: none;
+      cursor: pointer; 
+      font-weight: bold; 
+      text-transform: uppercase;
+      transition: 0.2s; 
+    }
+
+    button:hover:not(:disabled) { 
+      background: #fff; 
+      box-shadow: 0 0 10px #ffffff;
+    }
+
+    button:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+      border-color: #555;
+    }
+
+    .btn-secondary {
+      background: rgba(255, 232, 31, 0.15);
+      color: #FFE81F;
+      border: 1px solid #FFE81F;
+    }
+
+    .btn-secondary:hover:not(:disabled) {
+      background: #FFE81F;
+      color: #000;
+    }
+
+    .option-btn { 
+      background: rgba(41, 41, 46, 0.8); 
+      color: #fff;
+      border: 1px solid #323238;
+      text-align: left; 
+      margin-bottom: 8px; 
+    }
+
+    .option-btn:hover:not(:disabled) { 
+      background: #FFE81F; 
+      color: #000;
+      border-color: #FFE81F;
+    }
+
+    .game-stats-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(0, 0, 0, 0.4);
+      padding: 8px 12px;
+      border-radius: 8px;
+      margin-bottom: 12px;
+      border: 1px solid rgba(255, 232, 31, 0.3);
+      font-size: 14px;
+      font-weight: bold;
+    }
+
+    .level-tag {
+      color: #00E676;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .hits-counter {
+      color: #FFE81F;
+    }
+
+    .game-status-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+
+    .timer-badge {
+      font-size: 18px;
+      font-weight: bold;
+      color: #FFE81F;
+      background: rgba(255, 232, 31, 0.1);
+      padding: 6px 12px;
+      border-radius: 20px;
+      border: 1px solid #FFE81F;
+    }
+
+    .lifelines-container {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 15px;
+    }
+
+    .lifeline-btn {
+      font-size: 12px;
+      padding: 8px;
+      margin: 0;
+      background: rgba(255, 232, 31, 0.15);
+      color: #FFE81F;
+      border: 1px solid #FFE81F;
+      flex: 1;
+    }
+
+    .audio-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      width: auto;
+      padding: 6px 10px;
+      font-size: 12px;
+      background: rgba(255, 232, 31, 0.2);
+      color: #FFE81F;
+      border: 1px solid #FFE81F;
+      margin: 0;
+      z-index: 5;
+    }
+
+    .exit-fixed-btn {
+      position: fixed;
+      top: 15px;
+      left: 15px;
+      width: auto;
+      padding: 8px 14px;
+      font-size: 13px;
+      background: rgba(255, 0, 0, 0.2);
+      color: #ff4d4d;
+      border: 1px solid #ff4d4d;
+      margin: 0;
+      z-index: 100;
+      backdrop-filter: blur(4px);
+    }
+
+    .exit-fixed-btn:hover {
+      background: rgba(255, 0, 0, 0.5);
+      color: #fff;
+      box-shadow: 0 0 10px rgba(255, 77, 77, 0.5);
+    }
+
+    .footer-credits {
+      position: fixed;
+      bottom: 12px;
+      left: 15px;
+      font-size: 14px;
+      color: rgba(255, 232, 31, 0.8);
+      letter-spacing: 1px;
+      z-index: 10;
+      pointer-events: none;
+      text-shadow: 0 0 5px rgba(0, 0, 0, 0.8);
+    }
+
+    .hidden { display: none; }
+    ol { padding-left: 0; list-style: none; }
+    li { 
+      margin-bottom: 8px; 
+      font-size: 16px; 
+      background: rgba(255, 255, 255, 0.05);
+      padding: 10px 14px;
+      border-radius: 6px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-left: 4px solid #FFE81F;
+      color: #fff;
+    }
+
+    li.rank-0 { border-color: #ffd700; background: rgba(255, 215, 0, 0.15); }
+    li.rank-1 { border-color: #c0c0c0; background: rgba(192, 192, 192, 0.15); }
+    li.rank-2 { border-color: #cd7f32; background: rgba(205, 127, 50, 0.15); }
+  </style>
+</head>
+<body>
+
+<button class="exit-fixed-btn" onclick="exitGame()">🚪 Sair</button>
+
+<audio id="bg-music" loop src="musica.mp3"></audio>
+
+<div class="card" id="main-card">
+  <button id="mute-btn" class="audio-btn" onclick="toggleAudio()">🔊 Som</button>
+
+  <!-- 1. TELA INICIAL -->
+  <div id="start-screen">
+    <h1>Quizz Wars</h1>
+    <p style="text-align: center;">Responda a 20 perguntas, use suas ajudas com sabedoria e vença o cronômetro!</p>
+    <input type="text" id="player-name" placeholder="Digite seu nome..." maxlength="15">
+    <button onclick="startGame()">Que a Força Esteja Com Você</button>
+    <button class="btn-secondary" onclick="showRankingFromHome()">🏆 Ver Ranking Global</button>
+  </div>
+
+  <!-- 2. TELA DO QUIZ -->
+  <div id="quiz-screen" class="hidden">
+    <div class="game-stats-bar">
+      <span class="level-tag" id="level-display">Nível: Fácil</span>
+      <span class="hits-counter" id="hits-display">🎯 Acertos: 0/20</span>
+    </div>
+
+    <div class="game-status-bar">
+      <h2 id="question-number" style="margin:0; font-size: 18px;">Pergunta 1/20</h2>
+      <div id="timer" class="timer-badge">⏱️ --s</div>
+    </div>
+
+    <div class="lifelines-container">
+      <button id="help-5050" class="lifeline-btn" onclick="use5050()">🎯 50:50</button>
+      <button id="help-time" class="lifeline-btn" onclick="useExtraTime()">⏳ +10s</button>
+      <button id="help-swap" class="lifeline-btn" onclick="useSwap()">🔄 Trocar</button>
+    </div>
+
+    <p id="question-text" style="font-size: 18px; min-height: 50px; text-align: center;"></p>
+    <div id="options-container"></div>
+  </div>
+
+  <!-- 3. TELA DE RANKING SEPARADA -->
+  <div id="ranking-screen" class="hidden">
+    <h2>🏆 Ranking Global (Realtime DB)</h2>
+    <ol id="leaderboard-standalone"></ol>
+    <button onclick="showHome()">Voltar ao Início</button>
+  </div>
+
+  <!-- 4. TELA FINAL DE FIM DE JOGO -->
+  <div id="end-screen" class="hidden">
+    <h1>Fim da Missão!</h1>
+    <p style="text-align:center; font-size: 20px;">Sua pontuação: <strong id="final-score" style="color: #FFE81F;">0</strong>/100</p>
+    <h2>Ranking Global</h2>
+    <ol id="leaderboard-end"></ol>
+    <button onclick="restartGame()">Jogar Novamente</button>
+  </div>
+</div>
+
+<div class="footer-credits">by Arthur Rocha</div>
+
+<!-- FIREBASE SDKs (Realtime Database v9+) -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
+  import { getDatabase, ref, push, query, orderByChild, limitToLast, get, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyCcIWlxXTp9_Yms8b8OtjGMUjn7Vjo8Qr8",
+    authDomain: "quizz-wars.firebaseapp.com",
+    databaseURL: "https://quizz-wars-default-rtdb.firebaseio.com",
+    projectId: "quizz-wars",
+    storageBucket: "quizz-wars.firebasestorage.app",
+    messagingSenderId: "1070440938607",
+    appId: "1:1070440938607:web:8a187bc6e82edb4a80e19a"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+
+  window.db = db;
+
+  window.saveScoreToFirebase = async function(name, points) {
+    try {
+      console.log("Enviando pontuação para o Realtime Database...");
+      const rankingRef = ref(db, "ranking");
+      await push(rankingRef, {
+        name: name,
+        points: Number(points),
+        timestamp: serverTimestamp()
+      });
+      console.log("Pontuação salva com sucesso!");
+      await window.loadLeaderboardFromFirebase();
+    } catch (e) {
+      console.error("Erro ao salvar pontuação no Realtime Database: ", e);
+    }
+  };
+
+  window.loadLeaderboardFromFirebase = async function() {
+    try {
+      console.log("Carregando ranking do Realtime Database...");
+      const rankingRef = ref(db, "ranking");
+      const topScoresQuery = query(rankingRef, orderByChild("points"), limitToLast(10));
+      
+      const snapshot = await get(topScoresQuery);
+      const scores = [];
+
+      if (snapshot.exists()) {
+        snapshot.forEach((childSnapshot) => {
+          scores.push(childSnapshot.val());
+        });
+        // Como o limitToLast traz em ordem crescente, invertemos para exibir do maior para o menor
+        scores.reverse();
+      }
+
+      console.log("Ranking carregado:", scores);
+      renderLeaderboardToElement("leaderboard-end", scores);
+      renderLeaderboardToElement("leaderboard-standalone", scores);
+    } catch (e) {
+      console.error("Erro ao buscar ranking do Realtime Database: ", e);
+      const errHtml = `<p style='text-align:center; color:#ff4d4d;'>Erro no servidor: ${e.message}</p>`;
+      if (document.getElementById("leaderboard-end")) document.getElementById("leaderboard-end").innerHTML = errHtml;
+      if (document.getElementById("leaderboard-standalone")) document.getElementById("leaderboard-standalone").innerHTML = errHtml;
+    }
+  };
+</script>
+
+<script>
+  const bgMusic = document.getElementById("bg-music");
+  const muteBtn = document.getElementById("mute-btn");
+  const mainCard = document.getElementById("main-card");
+
+  bgMusic.volume = 0.20;
+
+  let audioCtx = null;
+  let soundEnabled = true;
+
+  function initAudioContext() {
+    if (!audioCtx) {
+      const AudioContext = window.AudioContext || window.webkitAudioContext;
+      audioCtx = new AudioContext();
+    }
+    if (audioCtx.state === 'suspended') {
+      audioCtx.resume();
+    }
+  }
+
+  function playSound(type) {
+    if (!soundEnabled || !audioCtx) return;
+
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+
+    const now = audioCtx.currentTime;
+
+    if (type === 'tick') {
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(900, now);
+      gain.gain.setValueAtTime(0.2, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
+      osc.start(now);
+      osc.stop(now + 0.05);
+    } else if (type === 'click') {
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(700, now);
+      gain.gain.setValueAtTime(0.4, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+      osc.start(now);
+      osc.stop(now + 0.08);
+    } else if (type === 'correct') {
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(523.25, now);
+      osc.frequency.setValueAtTime(659.25, now + 0.1);
+      osc.frequency.setValueAtTime(783.99, now + 0.2);
+      gain.gain.setValueAtTime(0.8, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+      osc.start(now);
+      osc.stop(now + 0.4);
+    } else if (type === 'wrong') {
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(180, now);
+      osc.frequency.setValueAtTime(120, now + 0.12);
+      gain.gain.setValueAtTime(0.8, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+      osc.start(now);
+      osc.stop(now + 0.4);
+    }
+  }
+
+  const questionPool = {
+    muitoFacil: [
+      { q: "Qual o planeta conhecido como 'Planeta Vermelho'?", a: ["Marte", "Júpiter", "Vênus", "Saturno"], correct: 0 },
+      { q: "Qual o maior planeta do Sistema Solar?", a: ["Terra", "Saturno", "Júpiter", "Netuno"], correct: 2 },
+      { q: "Quem foi o mestre de Platão?", a: ["Aristóteles", "Sócrates", "Pitágoras", "Epicuro"], correct: 1 },
+      { q: "Em qual país ficavam as pirâmides de Gizé na Antiguidade?", a: ["Grécia", "Egito", "Pérsia", "Roma"], correct: 1 },
+      { q: "Em qual ano terminou a Segunda Guerra Mundial?", a: ["1945", "1939", "1918", "1950"], correct: 0 },
+      { q: "Qual aliança militar venceu a Segunda Guerra Mundial?", a: ["Eixo", "Aliados", "OTAN", "Pacto de Varsóvia"], correct: 1 },
+      { q: "O que significa WWW?", a: ["World Wide Web", "World Wide Windows", "Web World Wide", "World Web Wire"], correct: 0 },
+      { q: "Qual empresa criou o sistema operacional Windows?", a: ["Apple", "Microsoft", "Google", "IBM"], correct: 1 },
+      { q: "Quem dirigiu 'Batman: O Cavaleiro das Trevas' (2008)?", a: ["Spielberg", "Christopher Nolan", "Tarantino", "Scorsese"], correct: 1 },
+      { q: "Qual filme retrata a vida de Forrest Gump?", a: ["Forrest Gump", "Pulp Fiction", "A Lista de Schindler", "O Poderoso Chefão"], correct: 0 },
+      { q: "Qual a soma dos ângulos internos de um triângulo?", a: ["90°", "180°", "360°", "270°"], correct: 1 },
+      { q: "Como é chamada a figura geométrica plana de 8 lados?", a: ["Hexágono", "Heptágono", "Octógono", "Decágono"], correct: 2 },
+      { q: "Qual estado da matéria tem forma e volume definidos?", a: ["Líquido", "Gasoso", "Sólido", "Plasma"], correct: 2 },
+      { q: "Qual a força que nos atrai para o centro da Terra?", a: ["Eletromagnetismo", "Atrito", "Gravidade", "Pressão"], correct: 2 },
+      { q: "Qual o maior país do mundo em área territorial?", a: ["Canadá", "Rússia", "China", "EUA"], correct: 1 },
+      { q: "Em qual continente fica o Brasil?", a: ["América do Sul", "Europa", "África", "América do Norte"], correct: 0 },
+      { q: "Quem é o chefe do poder executivo nos EUA?", a: ["Primeiro-Ministro", "Presidente", "Rei", "Chanceler"], correct: 1 },
+      { q: "Qual país é governado por um Primeiro-Ministro atualmente?", a: ["Reino Unido", "EUA", "Brasil", "Argentina"], correct: 0 },
+      { q: "Quantas Copas do Mundo o Brasil venceu no futebol masculino?", a: ["4", "5", "6", "3"], correct: 1 },
+      { q: "Qual clube espanhol tem mais títulos da Champions League?", a: ["Barcelona", "Real Madrid", "Atletico de Madrid", "Sevilla"], correct: 1 },
+      { q: "Qual banda de rock britânica cantava 'Hey Jude' e 'Let It Be'?", a: ["Queen", "The Beatles", "Rolling Stones", "Pink Floyd"], correct: 1 },
+      { q: "Qual é o mascote oficial da Sega nos videogames?", a: ["Mario", "Sonic", "Crash", "Pac-Man"], correct: 1 },
+      { q: "Qual o nome da personagem em Friends que se casa com Chandler?", a: ["Phoebe", "Rachel", "Monica", "Janice"], correct: 2 },
+      { q: "Qual curso de engenharia lida com a construção de edifícios e pontes?", a: ["Engenharia Elétrica", "Engenharia Civil", "Engenharia Química", "Engenharia Mecânica"], correct: 1 },
+      { q: "O que é uma 'Ação' no mercado financeiro?", a: ["Um empréstimo público", "Uma fração do capital de uma empresa", "Uma moeda digital", "Uma taxa cobrada pelo banco"], correct: 1 },
+      { q: "Quem escreveu o clássico 'Sítio do Picapau Amarelo'?", a: ["Machado de Assis", "Monteiro Lobato", "Jose de Alencar", "Clarice Lispector"], correct: 1 },
+      { q: "Em qual avenida famosa de São Paulo fica o MASP?", a: ["Avenida Paulista", "Avenida Faria Lima", "Avenida Rebouças", "Avenida Brasil"], correct: 0 },
+      { q: "Em qual cidade fica o campus da Cidade Universitária da USP?", a: ["São Paulo", "Campinas", "São Carlos", "Ribeirão Preto"], correct: 0 },
+      { q: "Qual a identidade secreta do Homem-Aranha?", a: ["Bruce Wayne", "Peter Parker", "Clark Kent", "Tony Stark"], correct: 1 },
+      { q: "Qual gás os seres humanos absorvem do ar para respirar e sobreviver?", a: ["Gás Carbônico", "Nitrogênio", "Oxigênio", "Hélio"], correct: 2 },
+      { q: "Qual vocalista liderou a banda Queen?", a: ["Freddie Mercury", "Mick Jagger", "Robert Plant", "Axl Rose"], correct: 0 },
+      { q: "Em 'Super Mario Bros', qual o nome do irmão do Mario?", a: ["Yoshi", "Luigi", "Wario", "Toad"], correct: 1 },
+      { q: "Qual a droga fabricada por Walter White em Breaking Bad?", a: ["Cocaína", "Metanfetamina", "Heroína", "LSD"], correct: 1 },
+      { q: "Qual grandeza elétrica é medida em Volts?", a: ["Corrente", "Tensão Elétrica", "Resistência", "Potência"], correct: 1 },
+      { q: "Qual a moeda oficial dos Estados Unidos?", a: ["Euro", "Dólar", "Libra", "Iene"], correct: 1 },
+      { q: "Qual o romance mais famoso de William Shakespeare sobre um casal de namorados?", a: ["Hamlet", "Romeu e Julieta", "Macbeth", "Otelho"], correct: 1 },
+      { q: "Qual o nome do famoso parque público no centro-sul de São Paulo?", a: ["Parque do Ibirapuera", "Parque Villa-Lobos", "Parque da Juventude", "Parque da Aclimação"], correct: 0 },
+      { q: "O que significa a sigla USP?", a: ["União dos São-Paulinos", "Universidade de São Paulo", "Unidade de Saúde Pública", "Universidade Sul-Paulista"], correct: 1 },
+      { q: "Qual herói de Gotham City que não possui superpoderes alienígenas?", a: ["Superman", "Batman", "Thor", "Flash"], correct: 1 },
+      { q: "Qual o órgão do corpo humano responsável por bombear o sangue?", a: ["Pulmão", "Fígado", "Coração", "Cérebro"], correct: 2 }
+    ],
+    facil: [
+      { q: "Qual estrela está no centro do nosso Sistema Solar?", a: ["Sirius", "Sol", "Proxima Centauri", "Betelgeuse"], correct: 1 },
+      { q: "Qual o nome da nossa galáxia?", a: ["Andrômeda", "Via Láctea", "Sombrero", "Triângulo"], correct: 1 },
+      { q: "Qual império construiu o Coliseu?", a: ["Império Otomano", "Império Romano", "Império Mongol", "Império Bizantino"], correct: 1 },
+      { q: "Qual filósofo disse 'Penso, logo existo'?", a: ["Descartes", "John Locke", "Kant", "Nietzsche"], correct: 0 },
+      { q: "Quem foi o líder da Alemanha nazista na 2ª Guerra?", a: ["Mussolini", "Hitler", "Stalin", "Churchill"], correct: 1 },
+      { q: "Qual ataque fez os EUA entrarem na 2ª Guerra?", a: ["Dia D", "Pearl Harbor", "Batalha de Midway", "Stalingrado"], correct: 1 },
+      { q: "Qual linguagem roda nativamente em navegadores Web?", a: ["Python", "C++", "JavaScript", "Assembly"], correct: 2 },
+      { q: "O que significa CPU?", a: ["Central Processing Unit", "Computer Control Unit", "Core Power Unit", "Central Program Utility"], correct: 0 },
+      { q: "Qual filme de 1972 traz a família Corleone?", a: ["O Poderoso Chefão", "Pulp Fiction", "Bons Companheiros", "Scarface"], correct: 0 },
+      { q: "Qual filme de Nolan explora buracos negros e tempo?", a: ["A Origem", "Interestelar", "Tenet", "Dunkirk"], correct: 1 },
+      { q: "Um número primo é divisível apenas por 1 e por:", a: ["Zero", "Ele mesmo", "Dois", "Qualquer número par"], correct: 1 },
+      { q: "Qual o valor aproximado de Pi (π)?", a: ["2,14", "3,14", "4,14", "1,61"], correct: 1 },
+      { q: "Qual a unidade de medida de força no SI?", a: ["Joule", "Pascal", "Newton", "Watt"], correct: 2 },
+      { q: "Qual partícula atômica tem carga negativa?", a: ["Próton", "Nêutron", "Elétron", "Pósitron"], correct: 2 },
+      { q: "Qual a capital da Austrália?", a: ["Sydney", "Melbourne", "Camberra", "Brisbane"], correct: 2 },
+      { q: "Qual o maior oceano do mundo?", a: ["Atlântico", "Pacífico", "Índico", "Ártico"], correct: 1 },
+      { q: "Quem foi o 1º presidente dos EUA?", a: ["Lincoln", "George Washington", "Jefferson", "Adams"], correct: 1 },
+      { q: "Onde fica a sede da ONU?", a: ["Genebra", "Nova York", "Paris", "Londres"], correct: 1 },
+      { q: "Em qual clube Messi jogou a maior parte da carreira?", a: ["PSG", "Barcelona", "Inter Miami", "Man. City"], correct: 1 },
+      { q: "Qual time brasileiro é chamado de 'O Mais Querido'?", a: ["Palmeiras", "Corinthians", "Flamengo", "São Paulo"], correct: 2 },
+      { q: "Qual o nome do vocalista da banda AC/DC famoso pelo chapéu e boina?", a: ["Brian Johnson", "Bon Scott", "Axl Rose", "Steven Tyler"], correct: 0 },
+      { q: "Qual franquia de jogos de tiro tem as séries 'Modern Warfare' e 'Black Ops'?", a: ["Battlefield", "Call of Duty", "Halo", "Counter-Strike"], correct: 1 },
+      { q: "Qual o nome da família mafiosa protagonista da série 'The Sopranos'?", a: ["Corleone", "Soprano", "Shelby", "Bluthe"], correct: 1 },
+      { q: "Qual lei da física afirma que para toda ação há uma reação oposta?", a: ["1ª Lei de Newton", "2ª Lei de Newton", "3ª Lei de Newton", "Lei de Coulomb"], correct: 2 },
+      { q: "O que significa a sigla B3 no mercado financeiro brasileiro?", a: ["Brasil, Bolsa, Balcão", "Banco do Brasil Bovespa", "Bolsa de Bancos Brasileiros", "Bloco das Três Bolsas"], correct: 0 },
+      { q: "Quem escreveu 'Dom Casmurro' e criou a personagem Capitu?", a: ["José de Alencar", "Machado de Assis", "Graciliano Ramos", "Érico Veríssimo"], correct: 1 },
+      { q: "Qual bairro de São Paulo é conhecido como o centro da comunidade japonesa?", a: ["Liberdade", "Moema", "Pinheiros", "Bixiga"], correct: 0 },
+      { q: "A Escola Politécnica (Poli) é a faculdade de qual área na USP?", a: ["Medicina", "Direito", "Engenharia", "Arquitetura"], correct: 2 },
+      { q: "Qual o verdadeiro nome do Batman nos quadrinhos?", a: ["Clark Kent", "Bruce Wayne", "Barry Allen", "Arthur Curry"], correct: 1 },
+      { q: "Qual a molécula responsável por carregar a informação genética nos seres vivos?", a: ["RNA", "DNA", "ATP", "Glicose"], correct: 1 },
+      { q: "Qual banda de rock lançou o lendário álbum 'The Dark Side of the Moon'?", a: ["Led Zeppelin", "Pink Floyd", "The Who", "Deep Purple"], correct: 1 },
+      { q: "Qual o jogo mais vendido de todos os tempos na história dos videogames?", a: ["Tetris", "Minecraft", "GTA V", "Wii Sports"], correct: 1 },
+      { q: "Em 'How I Met Your Mother', qual personagem usa a frase 'Legen... dary'?", a: ["Ted Mosby", "Barney Stinson", "Marshall Eriksen", "Robin Scherbatsky"], correct: 1 },
+      { q: "Qual é a unidade padrão de medição de resistência elétrica?", a: ["Ampere", "Ohm", "Volt", "Watt"], correct: 1 },
+      { q: "Qual indicador é usado para medir a inflação oficial no Brasil?", a: ["Selic", "IPCA", "CDI", "Ibovespa"], correct: 1 },
+      { q: "Quem escreveu a trilogia de fantasia 'O Senhor dos Anéis'?", a: ["J.K. Rowling", "J.R.R. Tolkien", "George R.R. Martin", "C.S. Lewis"], correct: 1 },
+      { q: "O famoso Bixiga é um sub-bairro localizado em qual bairro oficial de SP?", a: ["Bela Vista", "Vila Madalena", "Itaim Bibi", "Tatuapé"], correct: 0 },
+      { q: "Em qual campus da USP fica a maioria dos cursos da Poli?", a: ["USP Quadrilátero Saúde", "USP Cidade Universitária (Butantã)", "USP Leste", "USP São Carlos"], correct: 1 },
+      { q: "Qual herói da Marvel é conhecido como o 'Homem sem Medo'?", a: ["Demolidor", "Justiceiro", "Homem de Ferro", "Capitão América"], correct: 0 },
+      { q: "Como são chamadas as plantas que produzem flores e frutos?", a: ["Gimnospermas", "Angiospermas", "Pteridófitas", "Briófitas"], correct: 1 }
+    ],
+    media: [
+      { q: "Qual a distância aproximada da Terra até o Sol?", a: ["150 milhões de km", "50 milhões de km", "1 bilhão de km", "300 mil km"], correct: 0 },
+      { q: "Como se chama a fronteira de um buraco negro de onde nada escapa?", a: ["Singularidade", "Horizonte de Eventos", "Ergosfera", "Disco de Acresção"], correct: 1 },
+      { q: "Qual a cidade-estado grega famosa pela sua disciplina militar rigorosa?", a: ["Atenas", "Esparta", "Tebas", "Corinto"], correct: 1 },
+      { q: "Quem escreveu as obras 'Ilíada' e 'Odisséia'?", a: ["Sófocles", "Homero", "Hesíodo", "Virgílio"], correct: 1 },
+      { q: "Em qual batalha decisiva Napoleão foi derrotado em 1815?", a: ["Waterloo", "Leipzig", "Borodino", "Trafalgar"], correct: 0 },
+      { q: "Qual operação marcou o desembarque dos Aliados na Normandia em 1944?", a: ["Barbarossa", "Overlord", "Market Garden", "Urano"], correct: 1 },
+      { q: "Quem é o pai da computação moderna que quebrou a Enigma?", a: ["Steve Jobs", "Alan Turing", "Bill Gates", "Ada Lovelace"], correct: 1 },
+      { q: "Qual foi a primeira linguagem de programação de alto nível amplamente usada?", a: ["FORTRAN", "COBOL", "C", "BASIC"], correct: 0 },
+      { q: "Qual filme ganhou o Oscar de Melhor Filme em 2020 (1º não inglês)?", a: ["Parasita", "Roma", "Drive My Car", "Tudo em Todo Lugar"], correct: 0 },
+      { q: "Em 'Matrix' (1999), qual pílula Neo escolhe para ver a verdade?", a: ["Azul", "Vermelha", "Amarela", "Verde"], correct: 1 },
+      { q: "Qual matemático deu nome ao teorema sobre lados do triângulo retângulo?", a: ["Euclides", "Arquimedes", "Pitágoras", "Tales"], correct: 2 },
+      { q: "Qual a sequência em que cada termo é a soma dos dois anteriores?", a: ["Gauss", "Fibonacci", "PA", "Taylor"], correct: 1 },
+      { q: "Qual a velocidade máxima teórica do universo no vácuo?", a: ["300.000 km/s", "150.000 km/s", "1.000.000 km/s", "30.000 km/s"], correct: 0 },
+      { q: "A 1ª Lei de Newton também é conhecida como Lei da:", a: ["Ação e Reação", "Inércia", "Gravitação Universal", "Conservação"], correct: 1 },
+      { q: "Qual o menor país do mundo em área?", a: ["Mônaco", "Vaticano", "Nauru", "San Marino"], correct: 1 },
+      { q: "Qual é o rio mais extenso do mundo?", a: ["Nilo", "Amazonas", "Mississippi", "Yangtze"], correct: 1 },
+      { q: "Qual tratado criou a União Europeia em 1992?", a: ["Versalhes", "Maastricht", "Roma", "Lisboa"], correct: 1 },
+      { q: "Qual país asiático é dividido pelo Paralelo 38° Norte?", a: ["Vietnã", "Coreias", "Iêmen", "Alemanha"], correct: 1 },
+      { q: "Quem foi o único jogador a vencer 3 Copas do Mundo?", a: ["Maradona", "Pelé", "Zidane", "Ronaldo"], correct: 1 },
+      { q: "Qual clube conquistou a 'Sextete' europeia em 2009?", a: ["Real Madrid", "Bayern", "Barcelona", "Man. United"], correct: 2 },
+      { q: "Qual o nome do vocalista da banda Nirvana?", a: ["Kurt Cobain", "Eddie Vedder", "Chris Cornell", "Layne Staley"], correct: 0 },
+      { q: "Qual o nome do protagonista de 'The Legend of Zelda'?", a: ["Zelda", "Link", "Ganon", "Epona"], correct: 1 },
+      { q: "Na série 'Game of Thrones', qual o lema oficial da Casa Stark?", a: ["O Fogo e o Sangue", "O Inverno está Chegando", "Um Lannister Paga Suas Dívidas", "Nós Não Semeamos"], correct: 1 },
+      { q: "Qual o nome do ciclo termodinâmico ideal que define o limite máximo de eficiência de uma máquina térmica?", a: ["Ciclo Otto", "Ciclo Diesel", "Ciclo de Carnot", "Ciclo Rankine"], correct: 2 },
+      { q: "Quem é considerado o investidor mais famoso do mundo e CEO da Berkshire Hathaway?", a: ["Elon Musk", "Warren Buffett", "Jeff Bezos", "Ray Dalio"], correct: 1 },
+      { q: "Qual romance distópico de George Orwell traz a figura do 'Grande Irmão' (Big Brother)?", a: ["Admirável Mundo Novo", "1984", "Fahrenheit 451", "A Revolução dos Bichos"], correct: 1 },
+      { q: "Qual o bairro paulistano famoso pelo futebol de várzea e samba na Zona Norte?", a: ["Itaquera", "Mandaqui", "Freguesia do Ó", "Casa Verde"], correct: 3 },
+      { q: "Qual prédio histórico do centro de SP foi inspirado no Empire State Building de NY?", a: ["Edifício Copan", "Edifício Altino Arantes (Farol Santander)", "Edifício Itália", "Mirante do Vale"], correct: 1 },
+      { q: "Qual metal vulnerável é a única fraqueza conhecida do Superman?", a: ["Vibranium", "Adamantium", "Kryptonita", "Mithril"], correct: 2 },
+      { q: "Qual organela celular é conhecida como a 'usina de energia' da célula?", a: ["Complexo de Golgi", "Retículo Endoplasmático", "Mitocôndria", "Ribossomo"], correct: 2 },
+      { q: "Quem é o famoso guitarrista do Guns N' Roses famoso pela cartola?", a: ["Slash", "Buckethead", "Kirk Hammett", "Tom Morello"], correct: 0 },
+      { q: "Qual o jogo eletrônico da Rockstar ambientado no Velho Oeste lançado em 2018?", a: ["GTA V", "Red Dead Redemption 2", "Bully", "Max Payne 3"], correct: 1 },
+      { q: "Qual o nome do mentalista e protagonista Patrick Jane na série 'The Mentalist'?", a: ["Simon Baker", "Patrick Jane", "Wayne Rigsby", "Kimball Cho"], correct: 1 },
+      { q: "Qual o principio de Pascal afirma sobre os fluidos em repouso?", a: ["Transmissão integral da variação de pressão", "Empuxo igual ao peso do fluido deslocado", "Conservação de massa", "Efeito Venturi"], correct: 0 },
+      { q: "O que mede o indicador EBITDA em uma análise de balanço financeiro?", a: ["Lucro líquido pós-impostos", "Fluxo de caixa operacional antes de juros, impostos, depreciação e amortização", "Endividamento total", "Dividendo por ação"], correct: 1 },
+      { q: "Qual obra épica de Dante Alighieri divide o além em Inferno, Purgatório e Paraíso?", a: ["A Divina Comédia", "Os Lusíadas", "Decamerão", "Fausto"], correct: 0 },
+      { q: "Qual parque em SP foi projetado pelo paisagista Roberto Burle Marx na Zona Sul?", a: ["Parque Burle Marx", "Parque do Povo", "Parque Água Branca", "Parque da Cantareira"], correct: 0 },
+      { q: "A tradicional festa universitária 'Poli-USP' costuma ser organizada por qual entidade estudantil?", a: ["CAEP", "Grêmio Politécnico", "Atlética Poli", "DCE USP"], correct: 1 },
+      { q: "Qual o nome da ilha nativa da Mulher-Maravilha nas HQs?", a: ["Atlantis", "Themyscira (Temiscira)", "Genosha", "Krypton"], correct: 1 },
+      { q: "Qual processo biológico transforma luz solar, água e CO2 em glicose nas plantas?", a: ["Respiração Celular", "Fermentação", "Fotossíntese", "Quimiossíntese"], correct: 2 }
+    ],
+    dificil: [
+      { q: "O que é um 'Pulsar' na astronomia?", a: ["Estrela de nêutrons em rotação rápida", "Buraco negro supermassivo", "Exoplaneta", "Galáxia anã"], correct: 0 },
+      { q: "Qual a idade aproximada do Universo?", a: ["4.5 bilhões de anos", "13.8 bilhões de anos", "20 bilhões de anos", "100 bilhões de anos"], correct: 1 },
+      { q: "Qual imperador dividiu o Império Romano em 285 d.C.?", a: ["Nero", "Diocleciano", "Constantino", "Marco Aurélio"], correct: 1 },
+      { q: "Qual filósofo afirmava que 'tudo flui' e o elemento era o fogo?", a: ["Parmênides", "Heráclito", "Anaximandro", "Demócrito"], correct: 1 },
+      { q: "Qual batalha aérea em 1940 impediu a invasão nazista na Grã-Bretanha?", a: ["Batalha da Bretanha", "Ardenas", "Kursk", "Tobruk"], correct: 0 },
+      { q: "Em qual conferência em 1945 Aliados debateram o pós-guerra?", a: ["Conferência de Ialta", "Berlim", "Tordesilhas", "Pacto de Varsóvia"], correct: 0 },
+      { q: "Qual o nome da primeira mulher a escrever um algoritmo de computador?", a: ["Grace Hopper", "Ada Lovelace", "Margaret Hamilton", "Joan Clarke"], correct: 1 },
+      { q: "Qual arquitetura usa a mesma memória para dados e instruções?", a: ["Von Neumann", "Harvard", "RISC", "CISC"], correct: 0 },
+      { q: "Quem dirigiu 'Um Corpo que Cai' (Vertigo, 1958)?", a: ["Kubrick", "Alfred Hitchcock", "Orson Welles", "Billy Wilder"], correct: 1 },
+      { q: "Qual ator interpretou Travis Bickle em 'Taxi Driver' (1976)?", a: ["Al Pacino", "Robert De Niro", "Dustin Hoffman", "Jack Nicholson"], correct: 1 },
+      { q: "Conjectura não provada sobre distribuição dos zeros da função Zeta?", a: ["Poincaré", "Hipótese de Riemann", "Teorema de Fermat", "Goldbach"], correct: 1 },
+      { q: "Qual o nome da constante matemática 'e' (aprox 2,718)?", a: ["Número de Ouro", "Número de Euler", "Arquimedes", "Razão Áurea"], correct: 1 },
+      { q: "Princípio quântico de não saber posição e momento juntos?", a: ["Doppler", "Incerteza de Heisenberg", "Gato de Schrödinger", "Efeito Fotoelétrico"], correct: 1 },
+      { q: "Partícula bosônica que dá massa a outras partículas?", a: ["Fóton", "Bóson de Higgs", "Glúon", "Nêutron"], correct: 1 },
+      { q: "País com maior número de fusos horários (com ultramarinos)?", a: ["Rússia", "França", "EUA", "China"], correct: 1 },
+      { q: "Qual o maior deserto a quente do mundo?", a: ["Gobi", "Saara", "Atacama", "Arábia"], correct: 1 },
+      { q: "Quem assumiu a presidência dos EUA após o assassinato de JFK?", a: ["Nixon", "Lyndon B. Johnson", "Gerald Ford", "Eisenhower"], correct: 1 },
+      { q: "Chanceler que liderou a reunificação alemã pós-Muro de Berlim?", a: ["Angela Merkel", "Helmut Kohl", "Willy Brandt", "Adenauer"], correct: 1 },
+      { q: "Treinador com 3 Champions seguidas com o Real Madrid (2016-18)?", a: ["Ancelotti", "Zinedine Zidane", "Mourinho", "Guardiola"], correct: 1 },
+      { q: "Único clube inglês com a Tríplice Coroa no século XX (1998/99)?", a: ["Liverpool", "Arsenal", "Manchester United", "Chelsea"], correct: 2 },
+      { q: "Qual o nome do baixista lendário do The Who famoso pelo solo em 'My Generation'?", a: ["John Entwistle", "Paul McCartney", "Geddy Lee", "Jack Bruce"], correct: 0 },
+      { q: "Em qual ano foi lançado o primeiro jogo do console PlayStation 1 no Japão?", a: ["1992", "1994", "1996", "1998"], correct: 1 },
+      { q: "Na série Breaking Bad, qual o nome do restaurante de fast food do vilão Gus Fring?", a: ["Los Pollos Hermanos", "Taco Cabeza", "Pollo Loco", "El Camino"], correct: 0 },
+      { q: "Qual módulo de elasticidade mede a rigidez de um material sob tração ou compressão?", a: ["Módulo de Shear (Cisalhamento)", "Módulo de Young", "Coeficiente de Poisson", "Módulo de Bulk"], correct: 1 },
+      { q: "O que diz a hipótese dos mercados eficientes (EMH) nas finanças?", a: ["Ações sempre sobem a longo prazo", "Os preços dos ativos refletem todas as informações disponíveis", "O mercado é manipulado por grandes fundos", "A análise técnica é 100% precisa"], correct: 1 },
+      { q: "Qual romance de Fiódor Dostoiévski aborda os dilemas morais do estudante Raskólnikov?", a: ["Os Irmãos Karamázov", "Crime e Castigo", "O Idiota", "Noites Brancas"], correct: 1 },
+      { q: "Qual rio atravessa a cidade de São Paulo ao lado do Rio Tietê no sistema rodoviário urbano?", a: ["Rio Pinheiros", "Rio Tamanduateí", "Rio Anhangabaú", "Rio Cabuçu"], correct: 0 },
+      { q: "Qual o prédio do campus da Poli na USP que abriga o curso de Engenharia Elétrica?", a: ["Prédio da Mecânica", "Prédio da Eletrônica / Elétrica", "Prédio do Biênio", "Prédio da Civil"], correct: 1 },
+      { q: "Nos quadrinhos da Marvel, qual o nome do metal fictício inquebrável que compõe as garras do Wolverine?", a: ["Vibranium", "Adamantium", "Uru", "Carbonadium"], correct: 1 },
+      { q: "Qual a enzima humana responsável por iniciar a digestão dos carboidratos ainda na boca?", a: ["Pepsina", "Ptialina (Amilase Salivar)", "Lipse", "Trypsina"], correct: 1 },
+      { q: "Qual banda de rock progressivo lançou o conceitual álbum 'Thick as a Brick' em 1972?", a: ["Jethro Tull", "Genesis", "Yes", "King Crimson"], correct: 0 },
+      { q: "Qual desenvolvedora criou a famosa franquia RPG 'Dark Souls' e 'Elden Ring'?", a: ["Capcom", "FromSoftware", "Square Enix", "Bandai Namco"], correct: 1 },
+      { q: "Quem interpretou a personagem Rachel Green durante as 10 temporadas da sitcom 'Friends'?", a: ["Courteney Cox", "Jennifer Aniston", "Lisa Kudrow", "Winona Ryder"], correct: 1 },
+      { q: "Qual parâmetro adimensional na mecânica dos fluidos indica se um escoamento é laminar ou turbulento?", a: ["Número de Mach", "Número de Reynolds", "Número de Froude", "Número de Nusselt"], correct: 1 },
+      { q: "O que é o 'Short Selling' (venda a descoberto) na bolsa de valores?", a: ["Comprar ações para guardar por anos", "Aposta na queda de uma ação alugando-a para vender e recomprar mais barato", "Compra rápida de ações no mesmo dia", "Investimento em fundos imobiliários"], correct: 1 },
+      { q: "Quem escreveu o livro de poesia 'A Rosa do Povo' publicado em 1945?", a: ["Manuel Bandeira", "Carlos Drummond de Andrade", "Vinicius de Moraes", "João Cabral de Melo Neto"], correct: 1 },
+      { q: "O famoso Viaduto do Chá em São Paulo passa por cima de qual importante vale urbano?", a: ["Vale do Anhangabaú", "Vale do Paraíba", "Vale do Tamanduateí", "Vale do Pacaembu"], correct: 0 },
+      { q: "O prédio inicial conhecido como 'Biênio' na Poli USP atende os alunos em qual fase do curso?", a: ["Apenas no TCC", "Nos 2 primeiros anos (ciclo básico)", "Na pós-graduação", "Nos estágios de férias"], correct: 1 },
+      { q: "Qual heroína dos X-Men tem o poder de absorver memórias e poderes de quem ela toca?", a: ["Tempestade", "Vampira (Rogue)", "Jean Grey", "Lince Negra"], correct: 1 },
+      { q: "Qual o nome da fase da mitose celular em que os cromossomos se alinham no equador da célula?", a: ["Prófase", "Metáfase", "Anáfase", "Telófase"], correct: 1 }
+    ],
+    impossivel: [
+      { q: "Qual o maior superaglomerado de galáxias no qual a Via Láctea está?", a: ["Virgem", "Laniakea", "Perseus-Pisces", "Shapley"], correct: 1 },
+      { q: "Estrela mais distante já individualizada pela astronomia?", a: ["Earendel", "UY Scuti", "Polaris", "Sirius B"], correct: 0 },
+      { q: "Batalha em 401 a.C. em que Ciro tentou usurpar o trono persa?", a: ["Cunaxa", "Gaugamela", "Termópilas", "Maratona"], correct: 0 },
+      { q: "Quem escreveu o diálogo 'Teeteto' sobre o conceito de conhecimento?", a: ["Aristóteles", "Platão", "Plotino", "Xenofonte"], correct: 1 },
+      { q: "General nazista conhecido como 'A Raposa do Deserto'?", a: ["Guderian", "Erwin Rommel", "Manstein", "Rundstedt"], correct: 1 },
+      { q: "Codinome da invasão alemã da União Soviética em 1941?", a: ["Cinderela", "Barbarossa", "Cautela", "Tufão"], correct: 1 },
+      { q: "Algoritmo de consenso original do Bitcoin para validação de blocos?", a: ["Proof of Stake", "Proof of Work", "Proof of History", "Proof of Authority"], correct: 1 },
+      { q: "Quem desenvolveu a estrutura do compilador moderno e o COBOL?", a: ["Grace Hopper", "Margaret Hamilton", "John Backus", "Dennis Ritchie"], correct: 0 },
+      { q: "Diretor de fotografia de 'E o Vento Levou' e 'Cidadão Kane'?", a: ["Gregg Toland", "Roger Deakins", "Gordon Willis", "Sven Nykvist"], correct: 0 },
+      { q: "Compositor da trilha de 'Três Homens em Conflito' (1966)?", a: ["John Williams", "Ennio Morricone", "Hans Zimmer", "Nino Rota"], correct: 1 },
+      { q: "Matemático que provou o 'Último Teorema de Fermat' em 1994?", a: ["Andrew Wiles", "Terence Tao", "Perelman", "Turing"], correct: 0 },
+      { q: "Estudo das propriedades dos espaços preservadas em deformações contínuas?", a: ["Álgebra Linear", "Topologia", "Análise Complexa", "Cálculo Estocástico"], correct: 1 },
+      { q: "Experiência que demonstrou a natureza dual onda-partícula da luz?", a: ["Michelson-Morley", "Fenda Dupla de Young", "Cavendish", "Pêndulo de Foucault"], correct: 1 },
+      { q: "Teoria que tenta unificar Relatividade e Quântica usando vibrações 1D?", a: ["Teoria M / Cordas", "Termodinâmica", "Cromodinâmica", "Teoria do Caos"], correct: 0 },
+      { q: "Capital do estado federado de Palau, no Pacífico?", a: ["Ngerulmud", "Koror", "Majuro", "Funafuti"], correct: 0 },
+      { q: "Único país totalmente cercado pela África do Sul?", a: ["Suazilândia", "Lesoto", "Botsuana", "Namíbia"], correct: 1 },
+      { q: "Primeiro-Ministro da Suécia assassinado em Estocolmo em 1986?", a: ["Olof Palme", "Carl Bildt", "Erlander", "Persson"], correct: 0 },
+      { q: "Líder que presidiu a fundação da Organização da Unidade Africana em 1963?", a: ["Haile Selassie", "Nkrumah", "Kenyatta", "Nyerere"], correct: 0 },
+      { q: "Quem marcou o gol da vitória da Holanda na final da Euro 1988 com um voleio?", a: ["Gullit", "Marco van Basten", "Rijkaard", "Bergkamp"], correct: 1 },
+      { q: "Único jogador a vencer a Champions por 3 clubes diferentes?", a: ["Clarence Seedorf", "Cristiano Ronaldo", "Eto'o", "Ibrahimović"], correct: 0 },
+      { q: "Qual o nome do lendário álbum solo de estreia do guitarrista David Gilmour (Pink Floyd) em 1978?", a: ["David Gilmour", "About Face", "On an Island", "Rattle That Lock"], correct: 0 },
+      { q: "No jogo KOTOR (Star Wars: Knights of the Old Republic), qual o nome do planeta Sith coberto de túmulos antigos?", a: ["Korriban", "Tatooine", "Dantooine", "Kashyyyk"], correct: 0 },
+      { q: "Qual o nome do bar e ponto de encontro dos personagens na série 'The Sopranos'?", a: ["Bada Bing!", "MacLaren's", "Central Perk", "Monk's Diner"], correct: 0 },
+      { q: "O teorema de Castigliano na mecânica dos sólidos permite calcular o quê?", a: ["Deslocamentos através da derivada da energia de deformação", "Frequências naturais de vibração", "Tension de escoamento de von Mises", "Perda de carga em tubulações"], correct: 0 },
+      { q: "O modelo de precificação de opções Black-Scholes ganhou o prêmio Nobel de Economia em qual ano?", a: ["1997", "1990", "2008", "2001"], correct: 0 },
+      { q: "Qual o título do famoso livro de contos do escritor argentino Jorge Luis Borges publicado em 1945?", a: ["O Aleph", "Ficções", "O Livro de Areia", "O Informe de Brodie"], correct: 1 },
+      { q: "Em qual ano foi inaugurado o metrô de São Paulo (a Linha 1-Azul no trecho Jabaquara - Vila Mariana)?", a: ["1974", "1968", "1980", "1970"], correct: 0 },
+      { q: "Qual professor politécnico e engenheiro dá nome ao grande auditório do Prédio da Administração da Poli USP?", a: ["Prof. Lucas Nogueira Garcez", "Prof. Luiz de Anhaia Mello", "Prof. Teodoro Sampaio", "Prof. Francisco de Paula Ramos de Azevedo"], correct: 3 },
+      { q: "Em qual edição em quadrinhos da DC (1938) o Superman fez sua primeiríssima aparição?", a: ["Action Comics #1", "Detective Comics #27", "Superman #1", "All-Star Comics #3"], correct: 0 },
+      { q: "Qual a sequência correta de bases nitrogenadas purinas no DNA?", a: ["Adenina e Guanina", "Timina e Citosina", "Uracila e Adenina", "Guanina e Citosina"], correct: 0 }
+    ]
+  };
+
+  let playerName = "";
+  let currentQuestions = [];
+  let currentQuestionIndex = 0;
+  let score = 0;
+  let correctAnswersCount = 0;
+  const POINTS_PER_QUESTION = 5;
+  
+  let timerInterval = null;
+  let timeLeft = 0;
+  let lifelinesUsed = {
+    fiftyFifty: false,
+    extraTime: false,
+    swap: false
+  };
+
+  function shuffle(array) {
+    let currentIndex = array.length, randomIndex;
+    let arrayCopy = [...array];
+
+    while (currentIndex !== 0) {
+      randomIndex = Math.floor(Math.random() * currentIndex);
+      currentIndex--;
+      [arrayCopy[currentIndex], arrayCopy[randomIndex]] = [
+        arrayCopy[randomIndex], arrayCopy[currentIndex]
+      ];
+    }
+
+    return arrayCopy;
+  }
+
+  function getLevelNameFormatted(level) {
+    switch (level) {
+      case 'muitoFacil': return 'Muito Fácil';
+      case 'facil': return 'Fácil';
+      case 'media': return 'Média';
+      case 'dificil': return 'Difícil';
+      case 'impossivel': return 'Impossível';
+      default: return level;
+    }
+  }
+
+  function showHome() {
+    initAudioContext();
+    playSound('click');
+    document.getElementById("quiz-screen").classList.add("hidden");
+    document.getElementById("end-screen").classList.add("hidden");
+    document.getElementById("ranking-screen").classList.add("hidden");
+    document.getElementById("start-screen").classList.remove("hidden");
+  }
+
+  function exitGame() {
+    clearInterval(timerInterval);
+    showHome();
+  }
+
+  function startGame() {
+    initAudioContext();
+    playSound('click');
+
+    const input = document.getElementById("player-name");
+    if (!input.value.trim()) {
+      alert("Por favor, insira seu nome!");
+      return;
+    }
+    playerName = input.value.trim();
+    
+    bgMusic.play().catch(() => console.log("Áudio de fundo bloqueado"));
+    
+    const q1 = shuffle(questionPool.muitoFacil).slice(0, 4).map(item => ({ ...item, level: 'muitoFacil' }));
+    const q2 = shuffle(questionPool.facil).slice(0, 4).map(item => ({ ...item, level: 'facil' }));
+    const q3 = shuffle(questionPool.media).slice(0, 4).map(item => ({ ...item, level: 'media' }));
+    const q4 = shuffle(questionPool.dificil).slice(0, 4).map(item => ({ ...item, level: 'dificil' }));
+    const q5 = shuffle(questionPool.impossivel).slice(0, 4).map(item => ({ ...item, level: 'impossivel' }));
+
+    currentQuestions = [...q1, ...q2, ...q3, ...q4, ...q5];
+    
+    currentQuestionIndex = 0;
+    score = 0;
+    correctAnswersCount = 0;
+
+    lifelinesUsed = { fiftyFifty: false, extraTime: false, swap: false };
+    document.getElementById("help-5050").disabled = false;
+    document.getElementById("help-time").disabled = false;
+    document.getElementById("help-swap").disabled = false;
+
+    document.getElementById("start-screen").classList.add("hidden");
+    document.getElementById("quiz-screen").classList.remove("hidden");
+    showQuestion();
+  }
+
+  function toggleAudio() {
+    initAudioContext();
+    soundEnabled = !soundEnabled;
+
+    if (bgMusic.paused) {
+      bgMusic.play();
+      muteBtn.innerText = "🔊 Som";
+    } else {
+      bgMusic.pause();
+      muteBtn.innerText = "🔇 Mudo";
+    }
+  }
+
+  function getTimerForLevel(level) {
+    switch (level) {
+      case 'muitoFacil': return 10;
+      case 'facil': return 15;
+      case 'media': return 20;
+      case 'dificil': return 25;
+      case 'impossivel': return 30;
+      default: return 15;
+    }
+  }
+
+  function startTimer(seconds) {
+    clearInterval(timerInterval);
+    timeLeft = seconds;
+    updateTimerDisplay();
+
+    timerInterval = setInterval(() => {
+      timeLeft--;
+      updateTimerDisplay();
+
+      if (timeLeft > 0) {
+        playSound('tick');
+      } else {
+        clearInterval(timerInterval);
+        triggerFlashEffect('wrong');
+        playSound('wrong');
+        setTimeout(() => selectAnswer(-1, true), 600);
+      }
+    }, 1000);
+  }
+
+  function updateTimerDisplay() {
+    document.getElementById("timer").innerText = `⏱️ ${timeLeft}s`;
+  }
+
+  function showQuestion() {
+    const q = currentQuestions[currentQuestionIndex];
+    document.getElementById("question-number").innerText = `Pergunta ${currentQuestionIndex + 1}/20`;
+    document.getElementById("question-text").innerText = q.q;
+
+    document.getElementById("level-display").innerText = `Nível: ${getLevelNameFormatted(q.level)}`;
+    document.getElementById("hits-display").innerText = `🎯 Acertos: ${correctAnswersCount}/20`;
+
+    const container = document.getElementById("options-container");
+    container.innerHTML = "";
+
+    q.a.forEach((option, index) => {
+      const btn = document.createElement("button");
+      btn.innerText = option;
+      btn.className = "option-btn";
+      btn.id = `opt-${index}`;
+      btn.onclick = () => handleAnswerClick(index);
+      container.appendChild(btn);
+    });
+
+    startTimer(getTimerForLevel(q.level));
+  }
+
+  function triggerFlashEffect(type) {
+    const flashClass = type === 'correct' ? 'flash-correct' : 'flash-wrong';
+    mainCard.classList.add(flashClass);
+    setTimeout(() => {
+      mainCard.classList.remove(flashClass);
+    }, 600);
+  }
+
+  function handleAnswerClick(index) {
+    clearInterval(timerInterval);
+    
+    const btns = document.querySelectorAll(".option-btn");
+    btns.forEach(b => b.disabled = true);
+
+    const isCorrect = (index === currentQuestions[currentQuestionIndex].correct);
+
+    if (isCorrect) {
+      playSound('correct');
+      triggerFlashEffect('correct');
+      score += POINTS_PER_QUESTION;
+      correctAnswersCount++;
+    } else {
+      playSound('wrong');
+      triggerFlashEffect('wrong');
+    }
+
+    setTimeout(() => {
+      selectAnswer(index);
+    }, 600);
+  }
+
+  function selectAnswer(index, isTimeout = false) {
+    currentQuestionIndex++;
+    if (currentQuestionIndex < currentQuestions.length) {
+      showQuestion();
+    } else {
+      endGame();
+    }
+  }
+
+  function use5050() {
+    initAudioContext();
+    playSound('click');
+
+    if (lifelinesUsed.fiftyFifty) return;
+    lifelinesUsed.fiftyFifty = true;
+    document.getElementById("help-5050").disabled = true;
+
+    const q = currentQuestions[currentQuestionIndex];
+    const correctIdx = q.correct;
+    let wrongIndices = [];
+
+    q.a.forEach((_, idx) => {
+      if (idx !== correctIdx) wrongIndices.push(idx);
+    });
+
+    wrongIndices = shuffle(wrongIndices).slice(0, 2);
+
+    wrongIndices.forEach(idx => {
+      const btn = document.getElementById(`opt-${idx}`);
+      if (btn) {
+        btn.style.visibility = "hidden";
+      }
+    });
+  }
+
+  function useExtraTime() {
+    initAudioContext();
+    playSound('click');
+
+    if (lifelinesUsed.extraTime) return;
+    lifelinesUsed.extraTime = true;
+    document.getElementById("help-time").disabled = true;
+
+    timeLeft += 10;
+    updateTimerDisplay();
+  }
+
+  function useSwap() {
+    initAudioContext();
+    playSound('click');
+
+    if (lifelinesUsed.swap) return;
+    
+    const currentQ = currentQuestions[currentQuestionIndex];
+    const levelPool = questionPool[currentQ.level];
+
+    const available = levelPool.filter(item => 
+      !currentQuestions.some(cq => cq.q === item.q)
+    );
+
+    if (available.length === 0) {
+      alert("Não há outras perguntas disponíveis para troca neste nível.");
+      return;
+    }
+
+    lifelinesUsed.swap = true;
+    document.getElementById("help-swap").disabled = true;
+
+    const newQ = shuffle(available)[0];
+    currentQuestions[currentQuestionIndex] = { ...newQ, level: currentQ.level };
+    showQuestion();
+  }
+
+  function endGame() {
+    clearInterval(timerInterval);
+    document.getElementById("quiz-screen").classList.add("hidden");
+    document.getElementById("end-screen").classList.remove("hidden");
+    document.getElementById("final-score").innerText = score;
+
+    if (window.saveScoreToFirebase) {
+      window.saveScoreToFirebase(playerName, score);
+    }
+  }
+
+  function getMedalIcon(index) {
+    switch (index) {
+      case 0: return '🥇 ';
+      case 1: return '🥈 ';
+      case 2: return '🥉 ';
+      default: return `${index + 1}º `;
+    }
+  }
+
+  function renderLeaderboardToElement(elementId, scores) {
+    const list = document.getElementById(elementId);
+    if (!list) return;
+    list.innerHTML = "";
+
+    if (scores.length === 0) {
+      list.innerHTML = "<p style='text-align:center; color:#888;'>Nenhuma pontuação registrada.</p>";
+      return;
+    }
+
+    scores.forEach((s, idx) => {
+      const li = document.createElement("li");
+      li.className = `rank-${idx}`;
+      li.innerHTML = `
+        <span><strong>${getMedalIcon(idx)}</strong>${s.name}</span>
+        <span style="color: #FFE81F; font-weight: bold;">${s.points} pts</span>
+      `;
+      list.appendChild(li);
+    });
+  }
+
+  function showRankingFromHome() {
+    initAudioContext();
+    playSound('click');
+
+    document.getElementById("start-screen").classList.add("hidden");
+    document.getElementById("ranking-screen").classList.remove("hidden");
+
+    if (window.loadLeaderboardFromFirebase) {
+      window.loadLeaderboardFromFirebase();
+    }
+  }
+
+  function restartGame() {
+    initAudioContext();
+    playSound('click');
+
+    document.getElementById("end-screen").classList.add("hidden");
+    document.getElementById("start-screen").classList.remove("hidden");
+    document.getElementById("player-name").value = "";
+  }
+</script>
+</body>
+</html>
